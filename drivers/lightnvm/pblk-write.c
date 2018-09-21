@@ -791,7 +791,7 @@ void start_snapshot(struct pblk *pblk)
 	//<--------------pblk_rb_read_to_bio대체------>
 
 	if(bio_add_pc_page(q, bio, second_trans, ppa_to_int(second_trans[0]), 0) !=
-						ppa_to_int(second_trans[0]) {
+						ppa_to_int(second_trans[0])) {
 		printk("second_trans: bio_add_pc_page\n");
 		goto fail_put_bio;				
 	}

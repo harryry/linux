@@ -716,6 +716,7 @@ void start_snapshot(struct pblk *pblk)
 	struct pblk_line_meta *lm = &pblk->lm;
 	struct pblk_c_ctx *c_ctx;
 	struct ppa_addr erase_ppa;
+	struct page *page;
 	struct ppa_addr *map = (struct ppa_addr *)pblk->trans_map;
 	struct ppa_addr *second_trans = kmalloc(2,GFP_KERNEL);
 	struct ppa_addr des_ppa;
@@ -753,10 +754,15 @@ void start_snapshot(struct pblk *pblk)
 
 		//<---------pblk_rb_read_to_bio를 대체하는 처리가 필요함--->
 		c_ctx = nvm_rq_to_pdu(rqd);
+		c_ctx->sentry = lba;
+		c_ctx->nr_valid = ppa_per_chk;
+		c_ctx->nr_padded = 0;
 
-		if(bio_add_pc_page(q, bio, map[lba], ppa_per_chk, 0) !=
+		page = virt_to_page(map[lba]);
+
+		if(bio_add_pc_page(q, bio, page, ppa_per_chk, 0) !=
 							ppa_per_chk) {
-			printk("origin_trans: bio_add_pc_page: could not add page to write bio\n");
+			pr_err("origin_trans: bio_add_pc_page: could not add page to write bio\n");
 			goto fail_put_bio;
 		}
 		//<-------------------->
@@ -785,7 +791,7 @@ void start_snapshot(struct pblk *pblk)
 	//<--------------pblk_rb_read_to_bio대체------>
 
 	if(bio_add_pc_page(q, bio, second_trans, ppa_to_int(second_trans[0]), 0) !=
-						second_trans[0]) {
+						ppa_to_int(second_trans[0]) {
 		printk("second_trans: bio_add_pc_page\n");
 		goto fail_put_bio;				
 	}

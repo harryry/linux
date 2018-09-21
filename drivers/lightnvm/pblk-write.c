@@ -686,12 +686,13 @@ u64 ppa_to_int(struct ppa_addr ppa)
 
 void double_capacity(struct pblk *pblk, struct ppa_addr *ppa_list) 
 {
+	int i;
 	u64 new_size = 2*ppa_to_int(ppa_list[0]);
 
 	struct ppa_addr *temp = kmalloc(new_size, GFP_KERNEL);
 
 	temp[0] = int_to_ppa(new_size);
-	for(int i=1; i<ppa_list[0]; i++)
+	for(i=1; i<ppa_to_int(ppa_list[0]); i++)
 	{
 		temp[i] = ppa_list[i];
 	}
@@ -766,7 +767,7 @@ void start_snapshot(struct pblk *pblk)
 		second_trans[st_index] = des_ppa;
 		st_index++;
 
-		if(st_index > ppa_to_int(second_trans[0]) 
+		if(st_index > ppa_to_int(second_trans[0]))
 			double_capacity(pblk, second_trans);
 
 		lba += ppa_per_chk;

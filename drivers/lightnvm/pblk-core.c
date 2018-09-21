@@ -761,67 +761,6 @@ free_rqd_dma:
 	return ret;
 }
 
-// static int pblk_line_submit_snapshot_io(struct pblk *pblk,
-// 										struct pblk_line *line,
-// 										ppa_addr *map, ppa_addr des_ppa,
-// 										int dir) {
-// 	struct nvm_tgt_dev *dev = pblk->dev;
-// 	struct nvm_geo *geo = &dev->geo;
-// 	struct pblk_line_mgmt *l_mg = &pblk->l_mg;
-// 	struct pblk_line_meta *lm = &pblk->lm;
-// 	void *ppa_list, *meta_list;
-// 	struct bio *bio;
-// 	struct nvm_rq rqd;
-// 	dma_addr_t dma_ppa_list, dma_meta_list;
-// 	int rq_ppas, rq_len;
-// 	int cmd_op, bio_op;
-// 	int i, j;
-// 	int ret;
-
-// 	if(dir == PBLK_WRITE) {
-// 		bio_op = REQ_OP_WRITE;
-// 		cmd_op = NVM_OP_PWRITE;
-// 	} else if(dir == PBLK_READ) {
-// 		bio_op = REQ_OP_READ;
-// 		cmd_op = NVM_OP_PREAD;
-// 	} else 
-// 		return -EINVAL;
-
-// 	meta_list = nvm_dev_dma_alloc(dev->parent, GFP_KERNEL, &dma_meta_list);
-// 	if (!meta_list)
-//     	return -ENOMEM;
-// 	ppa_list = meta_list + pblk_dma_meta_size;
-// 	dma_ppa_list = dma_meta_list + pblk_dma_meta_size;
-
-// next_rq:
-// 	memset(&rqd, 0, sizeof(struct nvm_rq));
-// 	rq_ppas = pblk_calc_secs(pblk, left_ppas, 0);
-// 	rq_len = rq_ppas * geo->csecs;
-
-// 	printk("pblk_line_submit_snapshot_io: before bio map kern\n");
-// 	bio = bio_map_kern(dev->q, line->snapshot, rq_len, GFP_KERNEL);
-// 	if (IS_ERR(bio)) {
-// 		ret = PTR_ERR(bio);
-// 		goto free_rqd_dma;
-// 	}
-
-// 	bio->bi_iter.bi_sector = 0; /* internal bio */
-// 	bio_set_op_attrs(bio, bio_op, 0);
-
-// 	rqd.bio = bio;
-// 	rqd.meta_list = meta_list;
-// 	rqd.ppa_list = ppa_list;
-// 	rqd.dma_meta_list = dma_meta_list;
-// 	rqd.dma_ppa_list = dma_ppa_list;
-// 	rqd.opcode = cmd_op;
-// 	rqd.nr_ppas = rq_ppas;
-// }
-
-// int pblk_line_write_snapshot(struct pblk *pblk, struct pblk_line *line, 
-// 							void *snapshot_buf, u64 paddr) {
-// 	return pblk_line_submit_snapshot_io(pblk, line, snapshot_buf, paddr, PBLK_WRITE);
-// }
-
 u64 pblk_line_smeta_start(struct pblk *pblk, struct pblk_line *line)
 {
 	struct nvm_tgt_dev *dev = pblk->dev;

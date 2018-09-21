@@ -669,12 +669,28 @@ int pblk_write_ts(void *data)
 	return 0;
 }
 
+struct ppa_addr int_to_ppa(u64 origin)
+{
+	struct ppa_addr ppa;
+
+	ppa.ppa = 0;
+	ppa.g.sec = origin;
+
+	return ppa;
+}
+
+u64 ppa_to_int(struct ppa_addr ppa)
+{
+	return ppa.m.sec;
+}
 
 void double_capacity(struct pblk *pblk, struct ppa_addr *ppa_list) 
 {
-	ppa_addr *temp = kmalloc(2*ppa_list[0],GFP_KERNEL);
+	u64 new_size = 2*ppa_to_int(ppa_list[0]);
 
-	temp[0] = 2*ppa_list[0];
+	struct ppa_addr *temp = kmalloc(new_size, GFP_KERNEL);
+
+	temp[0] = int_to_ppa(new_size);
 	for(i=1; i<ppa_list[0]; i++)
 	{
 		temp[i] = ppa_list[i];
@@ -757,7 +773,7 @@ void start_snapshot(struct pblk *pblk)
 	}
 
 	//submit second_trans
-	bio = bio_allloc(GFP_KERNEL, second_trans[0]);
+	bio = bio_alloc(GFP_KERNEL, second_trans[0]);
 
 	bio->bi_iter.bi_sector = 0;
 	bio_set_op_attrs(bio, REQ_OP_WRITE, 0);

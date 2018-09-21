@@ -774,7 +774,7 @@ void start_snapshot(struct pblk *pblk)
 	}
 
 	//submit second_trans
-	bio = bio_alloc(GFP_KERNEL, ppa_to_int(second_trans[0]);
+	bio = bio_alloc(GFP_KERNEL, ppa_to_int(second_trans[0]));
 
 	bio->bi_iter.bi_sector = 0;
 	bio_set_op_attrs(bio, REQ_OP_WRITE, 0);

@@ -789,8 +789,14 @@ void start_snapshot(struct pblk *pblk)
 	rqd->bio = bio;
 
 	//<--------------pblk_rb_read_to_bio대체------>
+	c_ctx = nvm_rq_to_pdu(rqd);
+	c_ctx->sentry = second_trans;
+	c_ctx->nr_valid = ppa_to_int(second_trans[0]);
+	c_ctx->nr_padded = 0;
 
-	if(bio_add_pc_page(q, bio, second_trans, ppa_to_int(second_trans[0]), 0) !=
+	page = virt_to_page(&second_trans[0]);
+
+	if(bio_add_pc_page(q, bio, page, ppa_to_int(second_trans[0]), 0) !=
 						ppa_to_int(second_trans[0])) {
 		printk("second_trans: bio_add_pc_page\n");
 		goto fail_put_bio;				

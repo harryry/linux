@@ -758,7 +758,7 @@ void start_snapshot(struct pblk *pblk)
 		c_ctx->nr_valid = ppa_per_chk;
 		c_ctx->nr_padded = 0;
 
-		page = virt_to_page(map[lba]);
+		page = virt_to_page(&map[lba]);
 
 		if(bio_add_pc_page(q, bio, page, ppa_per_chk, 0) !=
 							ppa_per_chk) {

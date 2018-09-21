@@ -670,7 +670,7 @@ int pblk_write_ts(void *data)
 }
 
 
-static void double_capacity(struct pblk *pblk, ppa_addr *ppa_list) 
+void double_capacity(struct pblk *pblk, struct ppa_addr *ppa_list) 
 {
 	ppa_addr *temp = kmalloc(2*ppa_list[0],GFP_KERNEL);
 
@@ -684,12 +684,12 @@ static void double_capacity(struct pblk *pblk, ppa_addr *ppa_list)
 } 
 
 //store first address of second_trans to behind of smeta
-static void store_snapshot_addr(struct pblk *pblk, ppa_addr *ppa_list) 
+void store_snapshot_addr(struct pblk *pblk, struct ppa_addr *ppa_list) 
 {
 	
 }
 
-static void start_snapshot(struct pblk *pblk) 
+void start_snapshot(struct pblk *pblk) 
 {
 	struct bio *bio;
 	struct request_queue *q = pblk->dev->q;

@@ -691,7 +691,7 @@ void double_capacity(struct pblk *pblk, struct ppa_addr *ppa_list)
 	struct ppa_addr *temp = kmalloc(new_size, GFP_KERNEL);
 
 	temp[0] = int_to_ppa(new_size);
-	for(i=1; i<ppa_list[0]; i++)
+	for(int i=1; i<ppa_list[0]; i++)
 	{
 		temp[i] = ppa_list[i];
 	}
@@ -730,7 +730,7 @@ void start_snapshot(struct pblk *pblk)
 	sector_t lba = 0;
 	u64 paddr;
 
-	second_trans[0] = 2;
+	second_trans[0] = int_to_ppa(2);
 	if(pblk->addrf_len < 32)
 		ppa_per_sec = 1024;
 	else
@@ -766,14 +766,14 @@ void start_snapshot(struct pblk *pblk)
 		second_trans[st_index] = des_ppa;
 		st_index++;
 
-		if(st_index > second_trans[0]) 
+		if(st_index > ppa_to_int(second_trans[0]) 
 			double_capacity(pblk, second_trans);
 
 		lba += ppa_per_chk;
 	}
 
 	//submit second_trans
-	bio = bio_alloc(GFP_KERNEL, second_trans[0]);
+	bio = bio_alloc(GFP_KERNEL, ppa_to_int(second_trans[0]);
 
 	bio->bi_iter.bi_sector = 0;
 	bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
@@ -783,7 +783,7 @@ void start_snapshot(struct pblk *pblk)
 
 	//<--------------pblk_rb_read_to_bio대체------>
 
-	if(bio_add_pc_page(q, bio, second_trans, second_trans[0], 0) !=
+	if(bio_add_pc_page(q, bio, second_trans, ppa_to_int(second_trans[0]), 0) !=
 						second_trans[0]) {
 		printk("second_trans: bio_add_pc_page\n");
 		goto fail_put_bio;				

@@ -710,6 +710,7 @@ void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa)
 	struct pblk_line *line;
 	struct bio *bio;
 	struct nvm_rq rqd;
+	__le64 *lba_list = NULL;
 	u64 pos;
 	u32 crc;
 	int cmd_op, bio_op;

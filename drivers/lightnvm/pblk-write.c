@@ -899,7 +899,7 @@ void start_snapshot(struct pblk *pblk) {
 			line = pblk_line_get(pblk);
 			printk("line type setting\n");
 			line->type = PBLK_LINETYPE_LOG;
-			pblk_line_close_meta(pblk, prev_line);
+			//pblk_line_close_meta(pblk, prev_line);
 
 			if(!line)
 				printk("start_snapshot: line is full\n");

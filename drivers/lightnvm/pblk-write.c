@@ -900,28 +900,36 @@ void start_snapshot(struct pblk *pblk) {
 				printk("start_snapshot: line is full\n");
 		}
 
+		printk("line type setting\n");
 		line->type = PBLK_LINETYPE_LOG;
 
+		printk("bio alloc start\n");
 		bio = bio_alloc(GFP_KERNEL, nr_secs);
 
+		printk("bio setting\n");
 		bio->bi_iter.bi_sector = 0;
 		bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
 
+		printk("request make\n");
 		rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
 		rqd->bio = bio;
 
+		printk("c_ctx setting\n");
 		c_ctx = nvm_rq_to_pdu(rqd);
 		c_ctx->sentry = lba;
 		c_ctx->nr_valid = nr_secs;
 		c_ctx->nr_padded = 0;
 
+		printk("virt_to_page start\n");
 		page = virt_to_page(&map[lba]);
+		printk("virt_to_page end\n");
 
 		if(bio_add_pc_page(q, bio, page, nr_secs, 0) != nr_secs) {
 			pr_err("start_snapshot: bio_add_pc_page error\n");
 			goto fail_put_bio;
 		}
 
+		printk("submit_io_set start\n");
 		pblk_submit_io_set(pblk, rqd);
 		lba += nr_secs;
 	}

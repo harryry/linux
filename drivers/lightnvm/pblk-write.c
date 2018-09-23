@@ -669,206 +669,265 @@ int pblk_write_ts(void *data)
 	return 0;
 }
 
-struct ppa_addr int_to_ppa(u64 origin)
-{
-	struct ppa_addr ppa;
+// struct ppa_addr int_to_ppa(u64 origin)
+// {
+// 	struct ppa_addr ppa;
 
-	ppa.ppa = 0;
-	ppa.g.sec = origin;
+// 	ppa.ppa = 0;
+// 	ppa.g.sec = origin;
 
-	return ppa;
-}
+// 	return ppa;
+// }
 
-u64 ppa_to_int(struct ppa_addr ppa)
-{
-	return ppa.m.sec;
-}
+// u64 ppa_to_int(struct ppa_addr ppa)
+// {
+// 	return ppa.m.sec;
+// }
 
-void double_capacity(struct pblk *pblk, struct ppa_addr *ppa_list) 
-{
-	int i;
-	u64 new_size = 2*ppa_to_int(ppa_list[0]);
+// void double_capacity(struct pblk *pblk, struct ppa_addr *ppa_list) 
+// {
+// 	int i;
+// 	u64 new_size = 2*ppa_to_int(ppa_list[0]);
 
-	struct ppa_addr *temp = kmalloc(new_size, GFP_KERNEL);
+// 	struct ppa_addr *temp = kmalloc(new_size, GFP_KERNEL);
 
-	temp[0] = int_to_ppa(new_size);
-	for(i=1; i<ppa_to_int(ppa_list[0]); i++)
-	{
-		temp[i] = ppa_list[i];
-	}
-	kfree(ppa_list);
-	ppa_list = temp;
-} 
+// 	temp[0] = int_to_ppa(new_size);
+// 	for(i=1; i<ppa_to_int(ppa_list[0]); i++)
+// 	{
+// 		temp[i] = ppa_list[i];
+// 	}
+// 	kfree(ppa_list);
+// 	ppa_list = temp;
+// } 
 
-//store first address of second_trans to behind of smeta
-void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa) 
-{
-	struct nvm_tgt_dev *dev = pblk->dev;
-	struct request_queue *q = pblk->dev->q;
-	struct pblk_line_mgmt *l_mg = &pblk->l_mg;
-	struct pblk_line_meta *lm = &pblk->lm;
-	struct pblk_line *line;
-	struct bio *bio;
-	struct nvm_rq rqd;
-	__le64 *lba_list = NULL;
-	u64 pos;
-	u32 crc;
-	int cmd_op, bio_op;
-	int flags;
-	int i;
+// //store first address of second_trans to behind of smeta
+// void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa) 
+// {
+// 	struct nvm_tgt_dev *dev = pblk->dev;
+// 	struct request_queue *q = pblk->dev->q;
+// 	struct pblk_line_mgmt *l_mg = &pblk->l_mg;
+// 	struct pblk_line_meta *lm = &pblk->lm;
+// 	struct pblk_line *line;
+// 	struct bio *bio;
+// 	struct nvm_rq rqd;
+// 	__le64 *lba_list = NULL;
+// 	u64 pos;
+// 	u32 crc;
+// 	int cmd_op, bio_op;
+// 	int flags;
+// 	int i;
 
-	for(i = 0; i < l_mg->nr_lines; i++) {
-		line = &pblk->lines[i];
-		bio_op = REQ_OP_WRITE;
-		cmd_op = NVM_OP_PWRITE;
-		flags = pblk_set_progr_mode(pblk, PBLK_WRITE);
-		lba_list = emeta_to_lbas(pblk, line->emeta->buf);
+// 	for(i = 0; i < l_mg->nr_lines; i++) {
+// 		line = &pblk->lines[i];
+// 		bio_op = REQ_OP_WRITE;
+// 		cmd_op = NVM_OP_PWRITE;
+// 		flags = pblk_set_progr_mode(pblk, PBLK_WRITE);
+// 		lba_list = emeta_to_lbas(pblk, line->emeta->buf);
 		
-		memset(&rqd, 0, sizeof(struct nvm_rq));
+// 		memset(&rqd, 0, sizeof(struct nvm_rq));
 
-		rqd.meta_list = nvm_dev_dma_alloc(dev->parent, GFP_KERNEL,
-								&rqd.dma_meta_list);
-		rqd.ppa_list = rqd.meta_list + pblk_dma_meta_size;
-		rqd.dma_ppa_list = rqd.dma_meta_list + pblk_dma_meta_size;
+// 		rqd.meta_list = nvm_dev_dma_alloc(dev->parent, GFP_KERNEL,
+// 								&rqd.dma_meta_list);
+// 		rqd.ppa_list = rqd.meta_list + pblk_dma_meta_size;
+// 		rqd.dma_ppa_list = rqd.dma_meta_list + pblk_dma_meta_size;
 
-		pos = pblk_line_smeta_start(pblk, line) + lm->smeta_len + 1;
+// 		pos = pblk_line_smeta_start(pblk, line) + lm->smeta_len + 1;
 
-		bio = bio_kmalloc(GFP_KERNEL, sizeof(struct ppa_addr));
-		bio_add_pc_page(q, bio, virt_to_page(&snapshot_ppa), 
-						sizeof(struct ppa_addr), 0);
-		bio->bi_end_io = bio_put;
-		bio->bi_iter.bi_sector = 0;
-		bio_set_op_attrs(bio, bio_op, 0);
+// 		bio = bio_kmalloc(GFP_KERNEL, sizeof(struct ppa_addr));
+// 		bio_add_pc_page(q, bio, virt_to_page(&snapshot_ppa), 
+// 						sizeof(struct ppa_addr), 0);
+// 		bio->bi_end_io = bio_put;
+// 		bio->bi_iter.bi_sector = 0;
+// 		bio_set_op_attrs(bio, bio_op, 0);
 
-		rqd.bio = bio;
-		rqd.opcode = cmd_op;
-		rqd.flags = flags;
-		rqd.nr_ppas = 1;
-		rqd.ppa_list[0] = addr_to_gen_ppa(pblk, pos, line->id);
+// 		rqd.bio = bio;
+// 		rqd.opcode = cmd_op;
+// 		rqd.flags = flags;
+// 		rqd.nr_ppas = 1;
+// 		rqd.ppa_list[0] = addr_to_gen_ppa(pblk, pos, line->id);
 
-		struct pblk_sec_meta *meta_list = rqd.meta_list;
-		__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
-		meta_list[0].lba = lba_list[pos] = addr_empty;
+// 		struct pblk_sec_meta *meta_list = rqd.meta_list;
+// 		__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
+// 		meta_list[0].lba = lba_list[pos] = addr_empty;
 
-		pblk_submit_io_sync(pblk, &rqd);
+// 		pblk_submit_io_sync(pblk, &rqd);
 
-	}
-}
+// 	}
+// }
 
-void start_snapshot(struct pblk *pblk) 
-{
+// void start_snapshot(struct pblk *pblk) 
+// {
+// 	struct bio *bio;
+// 	struct request_queue *q = pblk->dev->q;
+// 	struct nvm_rq *rqd;
+// 	struct pblk_c_ctx *c_ctx;
+// 	struct page *page;
+// 	struct ppa_addr *map = (struct ppa_addr *)pblk->trans_map;
+// 	struct ppa_addr *second_trans = kmalloc(2,GFP_KERNEL);
+// 	struct ppa_addr des_ppa;
+// 	unsigned long pos;
+// 	unsigned long *lun_bitmap;
+// 	//unsigned int left_sec = 0;
+// 	unsigned int st_index = 1;
+// 	unsigned int ppa_per_sec = 0;
+// 	unsigned int sec_per_chk = 3072;
+// 	unsigned int ppa_per_chk = 0;
+// 	int min = pblk->min_write_pgs;
+// 	int ret;
+// 	sector_t lba = 0;
+// 	u64 paddr;
+
+// 	printk("start snapshot start\n");
+
+// 	second_trans[0] = int_to_ppa(2);
+// 	if(pblk->addrf_len < 32)
+// 		ppa_per_sec = 1024;
+// 	else
+// 		ppa_per_sec = 512;
+
+// 	ppa_per_chk = ppa_per_sec * sec_per_chk;
+// 	printk("ppa_per_chk = %u", ppa_per_chk);
+// 	//left_sec = pblk->rl.nr_secs / ppa_per_sec;
+
+// 	for(; lba <= pblk->rl.nr_secs;) {
+		
+// 		printk("make bio start\n");
+// 		bio = bio_alloc(GFP_KERNEL, ppa_per_chk);
+
+// 		bio->bi_iter.bi_sector = 0;
+// 		bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
+
+// 		rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
+// 		rqd->bio = bio;
+
+// 		printk("make bio end\n");
+// 		//<---------pblk_rb_read_to_bio를 대체하는 처리가 필요함--->
+// 		c_ctx = nvm_rq_to_pdu(rqd);
+// 		c_ctx->sentry = lba;
+// 		c_ctx->nr_valid = ppa_per_chk;
+// 		c_ctx->nr_padded = 0;
+
+// 		page = virt_to_page(&map[lba]);
+// 		printk("make map to page\n");
+
+// 		if(bio_add_pc_page(q, bio, page, ppa_per_chk, 0) !=
+// 							ppa_per_chk) {
+// 			pr_err("origin_trans: bio_add_pc_page: could not add page to write bio\n");
+// 			goto fail_put_bio;
+// 		}
+// 		//<-------------------->
+// 		pblk_submit_io_set(pblk, rqd);
+// 		printk("submit_io_set end\n");
+
+// 		des_ppa = rqd->ppa_list[0];
+// 		printk("des_ppa = %u\n",des_ppa);
+// 		second_trans[st_index] = des_ppa;
+// 		st_index++;
+// 		printk("st_index = %u",st_index);
+
+// 		if(st_index > ppa_to_int(second_trans[0]))
+// 			double_capacity(pblk, second_trans);
+
+// 		lba += ppa_per_chk;
+// 		printk("lba = %u",lba);
+// 	}
+
+// 	//submit second_trans
+// 	bio = bio_alloc(GFP_KERNEL, ppa_to_int(second_trans[0]));
+
+// 	bio->bi_iter.bi_sector = 0;
+// 	bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
+
+// 	rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
+// 	rqd->bio = bio;
+
+// 	//<--------------pblk_rb_read_to_bio대체------>
+// 	c_ctx = nvm_rq_to_pdu(rqd);
+// 	c_ctx->sentry = second_trans;
+// 	c_ctx->nr_valid = ppa_to_int(second_trans[0]);
+// 	c_ctx->nr_padded = 0;
+
+// 	page = virt_to_page(&second_trans[0]);
+
+// 	if(bio_add_pc_page(q, bio, page, ppa_to_int(second_trans[0]), 0) !=
+// 						ppa_to_int(second_trans[0])) {
+// 		printk("second_trans: bio_add_pc_page\n");
+// 		goto fail_put_bio;				
+// 	}
+// 	//<----------------------->
+
+// 	pblk_submit_io_set(pblk, rqd);
+
+// 	des_ppa = rqd->ppa_list[0];
+// 	store_snapshot_addr(pblk, des_ppa);
+// 	goto done;
+
+// fail_put_bio:
+// 	bio_put(bio);
+// 	pblk_free_rqd(pblk, rqd, PBLK_WRITE);
+
+// done:
+// 	bio_put(bio);
+// 	pblk_free_rqd(pblk, rqd, PBLK_WRITE);
+// 	kfree(second_trans);
+
+// }
+
+
+void start_snapshot(struct pblk *pblk) {
 	struct bio *bio;
-	struct request_queue *q = pblk->dev->q;
-	struct nvm_rq *rqd;
-	struct pblk_c_ctx *c_ctx;
 	struct page *page;
+	struct nvm_rq *rqd;
+	struct pblk_line *line;
+	struct pblk_c_ctx *c_ctx;
+	struct request_queue *q = pblk->dev->q;
 	struct ppa_addr *map = (struct ppa_addr *)pblk->trans_map;
-	struct ppa_addr *second_trans = kmalloc(2,GFP_KERNEL);
-	struct ppa_addr des_ppa;
-	unsigned long pos;
-	unsigned long *lun_bitmap;
-	//unsigned int left_sec = 0;
-	unsigned int st_index = 1;
-	unsigned int ppa_per_sec = 0;
-	unsigned int sec_per_chk = 3072;
-	unsigned int ppa_per_chk = 0;
-	int min = pblk->min_write_pgs;
-	int ret;
+	unsigned int left_sec = 0;
+	int nr_secs = pblk->min_write_pgs;
 	sector_t lba = 0;
-	u64 paddr;
 
-	printk("start snapshot start\n");
+	printk("start_snapshot is start\n");
 
-	second_trans[0] = int_to_ppa(2);
-	if(pblk->addrf_len < 32)
-		ppa_per_sec = 1024;
-	else
-		ppa_per_sec = 512;
-
-	ppa_per_chk = ppa_per_sec * sec_per_chk;
-	printk("ppa_per_chk = %u", ppa_per_chk);
-	//left_sec = pblk->rl.nr_secs / ppa_per_sec;
-
+	line = pblk_line_get(pblk);
 	for(; lba <= pblk->rl.nr_secs;) {
-		
-		printk("make bio start\n");
-		bio = bio_alloc(GFP_KERNEL, ppa_per_chk);
+
+		if(pblk_line_is_full(line)) {
+			struct pblk_line *prev_line = line;
+
+			line = pblk_line_get(pblk);
+			pblk_line_close_meta(pblk, prev_line);
+
+			if(!line)
+				printk("start_snapshot: line is full\n");
+		}
+
+		line->type = PBLK_LINETYPE_LOG;
+
+		bio = bio_alloc(GFP_KERNEL, nr_secs);
 
 		bio->bi_iter.bi_sector = 0;
-		bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
+		bio_set_op_attr(bio, REQ_OP_WRITE, 0);
 
 		rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
 		rqd->bio = bio;
 
-		printk("make bio end\n");
-		//<---------pblk_rb_read_to_bio를 대체하는 처리가 필요함--->
 		c_ctx = nvm_rq_to_pdu(rqd);
 		c_ctx->sentry = lba;
-		c_ctx->nr_valid = ppa_per_chk;
+		c_ctx->nr_valid = nr_secs;
 		c_ctx->nr_padded = 0;
 
 		page = virt_to_page(&map[lba]);
-		printk("make map to page\n");
 
-		if(bio_add_pc_page(q, bio, page, ppa_per_chk, 0) !=
-							ppa_per_chk) {
-			pr_err("origin_trans: bio_add_pc_page: could not add page to write bio\n");
+		if(bio_add_pc_page(q, bio, page, nr_secs, 0) != nr_secs) {
+			pr_err("start_snapshot: bio_add_pc_page error\n");
 			goto fail_put_bio;
 		}
-		//<-------------------->
+
 		pblk_submit_io_set(pblk, rqd);
-		printk("submit_io_set end\n");
-
-		des_ppa = rqd->ppa_list[0];
-		printk("des_ppa = %u\n",des_ppa);
-		second_trans[st_index] = des_ppa;
-		st_index++;
-		printk("st_index = %u",st_index);
-
-		if(st_index > ppa_to_int(second_trans[0]))
-			double_capacity(pblk, second_trans);
-
-		lba += ppa_per_chk;
-		printk("lba = %u",lba);
+		lba += nr_secs;
 	}
-
-	//submit second_trans
-	bio = bio_alloc(GFP_KERNEL, ppa_to_int(second_trans[0]));
-
-	bio->bi_iter.bi_sector = 0;
-	bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
-
-	rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
-	rqd->bio = bio;
-
-	//<--------------pblk_rb_read_to_bio대체------>
-	c_ctx = nvm_rq_to_pdu(rqd);
-	c_ctx->sentry = second_trans;
-	c_ctx->nr_valid = ppa_to_int(second_trans[0]);
-	c_ctx->nr_padded = 0;
-
-	page = virt_to_page(&second_trans[0]);
-
-	if(bio_add_pc_page(q, bio, page, ppa_to_int(second_trans[0]), 0) !=
-						ppa_to_int(second_trans[0])) {
-		printk("second_trans: bio_add_pc_page\n");
-		goto fail_put_bio;				
-	}
-	//<----------------------->
-
-	pblk_submit_io_set(pblk, rqd);
-
-	des_ppa = rqd->ppa_list[0];
-	store_snapshot_addr(pblk, des_ppa);
-	goto done;
 
 fail_put_bio:
 	bio_put(bio);
 	pblk_free_rqd(pblk, rqd, PBLK_WRITE);
-
-done:
-	bio_put(bio);
-	pblk_free_rqd(pblk, rqd, PBLK_WRITE);
-	kfree(second_trans);
-
 }

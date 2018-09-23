@@ -707,6 +707,7 @@ void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa)
 	struct request_queue *q = pblk->dev->q;
 	struct pblk_line_mgmt *l_mg = &pblk->l_mg;
 	struct pblk_line_meta *lm = &pblk->lm;
+	struct pblk_line *line;
 	struct bio *bio;
 	struct nvm_rq rqd;
 	u64 pos;
@@ -722,7 +723,7 @@ void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa)
 		
 		memset(&rqd, 0, sizeof(struct nvm_rq));
 
-		rad.meta_list = nvm_dev_dma_alloc(dev->parent, GFP_KERNEL,
+		rqd.meta_list = nvm_dev_dma_alloc(dev->parent, GFP_KERNEL,
 								&rqd.dma_meta_list);
 		rqd.ppa_list = rqd.meta_list + pblk_dma_meta_size;
 		rqd.dma_ppa_list = rqd.dma_meta_list + pblk_dma_meta_size;
@@ -732,9 +733,9 @@ void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa)
 		pos = pblk_line_smeta_start(pblk, line) + lm->smeta_len + 1;
 
 		bio = bio_kmalloc(GFP_KERNEL, sizeof(struct ppa_addr));
-		bio_add_pc_page(q, bio, virt_to_page(snapshot_ppa), 
+		bio_add_pc_page(q, bio, virt_to_page(&snapshot_ppa), 
 						sizeof(struct ppa_addr), 0);
-		bio->bi_end_io = bio_map_kern_endio;
+		bio->bi_end_io = bio_put(bio);
 		bio->bi_iter.bi_sector = 0;
 		bio_set_op_attrs(bio, bio_op, 0);
 
@@ -746,7 +747,7 @@ void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa)
 
 		struct pblk_sec_meta *meta_list = rqd.meta_list;
 		__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
-		meta_list[0].lba = lba_list[pos] = addr_empty;
+		meta_list[0].lba = addr_empty;
 
 		pblk_submit_io_sync(pblk, &rqd);
 

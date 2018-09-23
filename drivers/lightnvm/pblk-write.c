@@ -711,15 +711,17 @@ void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa)
 	struct bio *bio;
 	struct nvm_rq rqd;
 	u64 pos;
+	u32 crc;
 	int cmd_op, bio_op;
 	int flags;
 	int i;
 
 	for(i = 0; i < l_mg->nr_lines; i++) {
-		u32 crc;
+		line = &pblk->lines[i];
 		bio_op = REQ_OP_WRITE;
 		cmd_op = NVM_OP_PWRITE;
 		flags = pblk_set_progr_mode(pblk, PBLK_WRITE);
+		lba_list = emeta_to_lbas(pblk, line->emeta->buf);
 		
 		memset(&rqd, 0, sizeof(struct nvm_rq));
 
@@ -727,8 +729,6 @@ void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa)
 								&rqd.dma_meta_list);
 		rqd.ppa_list = rqd.meta_list + pblk_dma_meta_size;
 		rqd.dma_ppa_list = rqd.dma_meta_list + pblk_dma_meta_size;
-
-		line = &pblk->lines[i];
 
 		pos = pblk_line_smeta_start(pblk, line) + lm->smeta_len + 1;
 
@@ -747,7 +747,7 @@ void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa)
 
 		struct pblk_sec_meta *meta_list = rqd.meta_list;
 		__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
-		meta_list[0].lba = addr_empty;
+		meta_list[0].lba = lba_list[pos] = addr_empty;
 
 		pblk_submit_io_sync(pblk, &rqd);
 

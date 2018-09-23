@@ -701,9 +701,56 @@ void double_capacity(struct pblk *pblk, struct ppa_addr *ppa_list)
 } 
 
 //store first address of second_trans to behind of smeta
-void store_snapshot_addr(struct pblk *pblk, struct ppa_addr *ppa_list) 
+void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa) 
 {
-	
+	struct nvm_tgt_dev *dev = pblk->dev;
+	struct request_queue *q = pblk->dev->q;
+	struct pblk_line_mgmt *l_mg = &pblk->l_mg;
+	struct pblk_line_meta *lm = &pblk->lm;
+	struct bio *bio;
+	struct nvm_rq rqd;
+	u64 pos;
+	int cmd_op, bio_op;
+	int flags;
+	int i;
+
+	for(i = 0; i < l_mg->nr_lines; i++) {
+		u32 crc;
+		bio_op = REQ_OP_WRITE;
+		cmd_op = NVM_OP_PWRITE;
+		flags = pblk_set_progr_mode(pblk, PBLK_WRITE);
+		
+		memset(&rqd, 0, sizeof(struct nvm_rq));
+
+		rad.meta_list = nvm_dev_dma_alloc(dev->parent, GFP_KERNEL,
+								&rqd.dma_meta_list);
+		rqd.ppa_list = rqd.meta_list + pblk_dma_meta_size;
+		rqd.dma_ppa_list = rqd.dma_meta_list + pblk_dma_meta_size;
+
+		line = &pblk->lines[i];
+
+		pos = pblk_line_smeta_start(pblk, line) + lm->smeta_len + 1;
+
+		bio = bio_kmalloc(GFP_KERNEL, sizeof(struct ppa_addr));
+		bio_add_pc_page(q, bio, virt_to_page(snapshot_ppa), 
+						sizeof(struct ppa_addr), 0);
+		bio->bi_end_io = bio_map_kern_endio;
+		bio->bi_iter.bi_sector = 0;
+		bio_set_op_attrs(bio, bio_op, 0);
+
+		rqd.bio = bio;
+		rqd.opcode = cmd_op;
+		rqd.flags = flags;
+		rqd.nr_ppas = 1;
+		rqd.ppa_list[0] = addr_to_gen_ppa(pblk, pos, line->id);
+
+		struct pblk_sec_meta *meta_list = rqd.meta_list;
+		__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
+		meta_list[0].lba = lba_list[pos] = addr_empty;
+
+		pblk_submit_io_sync(pblk, &rqd);
+
+	}
 }
 
 void start_snapshot(struct pblk *pblk) 
@@ -711,11 +758,7 @@ void start_snapshot(struct pblk *pblk)
 	struct bio *bio;
 	struct request_queue *q = pblk->dev->q;
 	struct nvm_rq *rqd;
-	struct pblk_line *line;
-	struct pblk_line *meta_line;
-	struct pblk_line_meta *lm = &pblk->lm;
 	struct pblk_c_ctx *c_ctx;
-	struct ppa_addr erase_ppa;
 	struct page *page;
 	struct ppa_addr *map = (struct ppa_addr *)pblk->trans_map;
 	struct ppa_addr *second_trans = kmalloc(2,GFP_KERNEL);

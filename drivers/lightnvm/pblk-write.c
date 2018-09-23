@@ -735,7 +735,7 @@ void store_snapshot_addr(struct pblk *pblk, struct ppa_addr snapshot_ppa)
 		bio = bio_kmalloc(GFP_KERNEL, sizeof(struct ppa_addr));
 		bio_add_pc_page(q, bio, virt_to_page(&snapshot_ppa), 
 						sizeof(struct ppa_addr), 0);
-		bio->bi_end_io = bio_put(bio);
+		bio->bi_end_io = bio_put;
 		bio->bi_iter.bi_sector = 0;
 		bio_set_op_attrs(bio, bio_op, 0);
 

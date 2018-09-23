@@ -882,7 +882,6 @@ void start_snapshot(struct pblk *pblk) {
 	struct pblk_c_ctx *c_ctx;
 	struct request_queue *q = pblk->dev->q;
 	struct ppa_addr *map = (struct ppa_addr *)pblk->trans_map;
-	unsigned int left_sec = 0;
 	int nr_secs = pblk->min_write_pgs;
 	sector_t lba = 0;
 
@@ -906,7 +905,7 @@ void start_snapshot(struct pblk *pblk) {
 		bio = bio_alloc(GFP_KERNEL, nr_secs);
 
 		bio->bi_iter.bi_sector = 0;
-		bio_set_op_attr(bio, REQ_OP_WRITE, 0);
+		bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
 
 		rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
 		rqd->bio = bio;

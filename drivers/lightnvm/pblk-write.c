@@ -776,6 +776,8 @@ void start_snapshot(struct pblk *pblk)
 	sector_t lba = 0;
 	u64 paddr;
 
+	printk("start snapshot start\n");
+
 	second_trans[0] = int_to_ppa(2);
 	if(pblk->addrf_len < 32)
 		ppa_per_sec = 1024;
@@ -783,11 +785,12 @@ void start_snapshot(struct pblk *pblk)
 		ppa_per_sec = 512;
 
 	ppa_per_chk = ppa_per_sec * sec_per_chk;
-	
+	printk("ppa_per_chk = %u", ppa_per_chk);
 	//left_sec = pblk->rl.nr_secs / ppa_per_sec;
 
 	for(; lba <= pblk->rl.nr_secs;) {
 		
+		printk("make bio start\n");
 		bio = bio_alloc(GFP_KERNEL, ppa_per_chk);
 
 		bio->bi_iter.bi_sector = 0;
@@ -796,6 +799,7 @@ void start_snapshot(struct pblk *pblk)
 		rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
 		rqd->bio = bio;
 
+		printk("make bio end\n");
 		//<---------pblk_rb_read_to_bio를 대체하는 처리가 필요함--->
 		c_ctx = nvm_rq_to_pdu(rqd);
 		c_ctx->sentry = lba;
@@ -803,6 +807,7 @@ void start_snapshot(struct pblk *pblk)
 		c_ctx->nr_padded = 0;
 
 		page = virt_to_page(&map[lba]);
+		printk("make map to page\n");
 
 		if(bio_add_pc_page(q, bio, page, ppa_per_chk, 0) !=
 							ppa_per_chk) {
@@ -811,16 +816,19 @@ void start_snapshot(struct pblk *pblk)
 		}
 		//<-------------------->
 		pblk_submit_io_set(pblk, rqd);
+		printk("submit_io_set end\n");
 
 		des_ppa = rqd->ppa_list[0];
-
+		printk("des_ppa = %u\n",des_ppa);
 		second_trans[st_index] = des_ppa;
 		st_index++;
+		printk("st_index = %u",st_index);
 
 		if(st_index > ppa_to_int(second_trans[0]))
 			double_capacity(pblk, second_trans);
 
 		lba += ppa_per_chk;
+		printk("lba = %u",lba);
 	}
 
 	//submit second_trans

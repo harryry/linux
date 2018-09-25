@@ -895,7 +895,7 @@ void start_snapshot(struct pblk *pblk) {
 	struct nvm_rq *rqd;
 	struct pblk_emeta *emeta;
 	struct pblk_line_meta *lm = &pblk->lm;
-	struct pblk_sec_meta *meta_list = rqd->meta_list;
+	struct pblk_sec_meta *meta_list;
 	struct pblk_line *line;
 	struct pblk_line *e_line;
 	struct pblk_c_ctx *c_ctx;
@@ -984,6 +984,7 @@ void start_snapshot(struct pblk *pblk) {
 				rqd->ppa_list[i] = addr_to_gen_ppa(pblk, paddr, line->id);
 
 				kref_get(&line->ref);
+				meta_list = rqd->meta_list;
 				meta_list[i].lba = cpu_to_le64(lba);
 				lba_list[paddr] = cpu_to_le64(lba);
 

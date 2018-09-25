@@ -513,18 +513,24 @@ static int pblk_submit_io_set(struct pblk *pblk, struct nvm_rq *rqd)
 	struct pblk_line *meta_line;
 	int err;
 
+	printk("pblke_submit_io_set start\n");
 	pblk_ppa_set_empty(&erase_ppa);
+	printk("pblk_ppa_set_empty ")
 
 	/* Assign lbas to ppas and populate request structure */
+	printk("pblk_setup_w_rq start\n");
 	err = pblk_setup_w_rq(pblk, rqd, &erase_ppa);
 	if (err) {
 		pr_err("pblk: could not setup write request: %d\n", err);
 		return NVM_IO_ERR;
 	}
 
+	printk("pblk_should_submit_meta_io start\n");
+
 	meta_line = pblk_should_submit_meta_io(pblk, rqd);
 
 	/* Submit data write for current data line */
+	printk("pblk_submit_io start\n");
 	err = pblk_submit_io(pblk, rqd);
 	if (err) {
 		pr_err("pblk: data I/O submission failed: %d\n", err);

@@ -344,12 +344,17 @@ static int pblk_setup_w_rq(struct pblk *pblk, struct nvm_rq *rqd,
 		return ret;
 	}
 
-	if (likely(!e_line || !atomic_read(&e_line->left_eblks)))
+	if (likely(!e_line || !atomic_read(&e_line->left_eblks))) {
+		printk("pblk_map_rq start\n");
 		pblk_map_rq(pblk, rqd, c_ctx->sentry, lun_bitmap, valid, 0);
-	else
+		printk("pblk_map_rq end\n");
+	}
+	else {
+		printk("pblk_map_erase_rq start\n");
 		pblk_map_erase_rq(pblk, rqd, c_ctx->sentry, lun_bitmap,
 							valid, erase_ppa);
-
+		printk("pblk_map_erase_rq end\n");
+	}
 	return 0;
 }
 

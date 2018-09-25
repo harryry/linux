@@ -927,7 +927,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 	for(; lba <= pblk->rl.nr_secs;) {
 
-		printk("line->left_msecs = %d\n",line->left_mescs);
+		printk("line->left_msecs = %d\n",line->left_msecs);
 		if(pblk_line_is_full(line) || line->left_msecs < nr_secs) {
 			prev_line = line;
 

@@ -1156,6 +1156,7 @@ static void pblk_free(struct pblk *pblk)
 static void pblk_tear_down(struct pblk *pblk, bool graceful)
 {
 	if (graceful)
+	start_snapshot(pblk);
 		__pblk_pipeline_flush(pblk);
 	__pblk_pipeline_stop(pblk);
 	pblk_writer_stop(pblk);
@@ -1163,8 +1164,6 @@ static void pblk_tear_down(struct pblk *pblk, bool graceful)
 	pblk_rb_sync_l2p(&pblk->rwb);
 	spin_unlock(&pblk->rwb.w_lock);
 	pblk_rl_free(&pblk->rl);
-
-	start_snapshot(pblk);
 
 	pr_debug("pblk: consistent tear down (graceful:%d)\n", graceful);
 }

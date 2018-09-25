@@ -916,6 +916,7 @@ void start_snapshot(struct pblk *pblk) {
 
 	printk("first line type setting\n");
 	line->type = PBLK_LINETYPE_LOG;
+	printk("type setting end\n");
 	emeta = line->emeta;
 	lba_list = emeta_to_lbas(pblk, emeta->buf);
 

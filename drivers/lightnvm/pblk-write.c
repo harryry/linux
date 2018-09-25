@@ -887,24 +887,24 @@ void start_snapshot(struct pblk *pblk) {
 
 	printk("start_snapshot is start\n");
 
-	line = pblk_line_get_data(pblk);
-	printk("first line type setting\n");
-	line->type = PBLK_LINETYPE_LOG;
+	// line = pblk_line_get_data(pblk);
+	// printk("first line type setting\n");
+	// line->type = PBLK_LINETYPE_LOG;
 
 	for(; lba <= pblk->rl.nr_secs;) {
 
-		printk("for loop start\n");
-		if(pblk_line_is_full(line)) {
-			//struct pblk_line *prev_line = line;
+		// printk("for loop start\n");
+		// if(pblk_line_is_full(line)) {
+		// 	//struct pblk_line *prev_line = line;
 
-			line = pblk_line_get(pblk);
-			printk("new line type setting\n");
-			line->type = PBLK_LINETYPE_LOG;
-			//pblk_line_close_meta(pblk, prev_line);
+		// 	line = pblk_line_get(pblk);
+		// 	printk("new line type setting\n");
+		// 	line->type = PBLK_LINETYPE_LOG;
+		// 	//pblk_line_close_meta(pblk, prev_line);
 
-			if(!line)
-				printk("start_snapshot: line is full\n");
-		}
+		// 	if(!line)
+		// 		printk("start_snapshot: line is full\n");
+		// }
 
 		printk("bio alloc start\n");
 		bio = bio_alloc(GFP_KERNEL, nr_secs);

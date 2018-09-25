@@ -893,33 +893,50 @@ void start_snapshot(struct pblk *pblk) {
 	struct bio *bio;
 	struct page *page;
 	struct nvm_rq *rqd;
+	struct pblk_emeta *emeta;
+	struct pblk_line_meta *lm = &pblk->lm;
+	struct pblk_sec_meta *meta_list = rqd->meta_list;
 	struct pblk_line *line;
+	struct pblk_line *e_line;
 	struct pblk_c_ctx *c_ctx;
 	struct request_queue *q = pblk->dev->q;
 	struct ppa_addr *map = (struct ppa_addr *)pblk->trans_map;
+	struct ppa_addr erase_ppa;
+	unsigned long *lun_bitmap;
+	unsigned int map_secs;
 	int nr_secs = pblk->min_write_pgs;
+	int err, ret, i;
 	sector_t lba = 0;
+	__le64 *lba_list;
+	u64 paddr;
 
 	printk("start_snapshot is start\n");
 
-	// line = pblk_line_get_data(pblk);
-	// printk("first line type setting\n");
-	// line->type = PBLK_LINETYPE_LOG;
+	line = pblk_line_get_data(pblk);
+
+	printk("first line type setting\n");
+	line->type = PBLK_LINETYPE_LOG;
+	emeta = line->emeta;
+	lba_list = emeta_to_lbas(pblk, emeta->buf);
 
 	for(; lba <= pblk->rl.nr_secs;) {
 
-		// printk("for loop start\n");
-		// if(pblk_line_is_full(line)) {
-		// 	//struct pblk_line *prev_line = line;
+		printk("for loop start\n");
+		if(pblk_line_is_full(line)) {
+			struct pblk_line *prev_line = line;
 
-		// 	line = pblk_line_get(pblk);
-		// 	printk("new line type setting\n");
-		// 	line->type = PBLK_LINETYPE_LOG;
-		// 	//pblk_line_close_meta(pblk, prev_line);
+			line = pblk_line_replace_data(pblk);
 
-		// 	if(!line)
-		// 		printk("start_snapshot: line is full\n");
-		// }
+			printk("new line type setting\n");
+			line->type = PBLK_LINETYPE_LOG;
+			emeta = line->emeta;
+			lba_list = emeta_to_lbas(pblk, emeta->buf);
+
+			pblk_line_close_meta(pblk, prev_line);
+
+			if(!line)
+				printk("start_snapshot: line is full\n");
+		}
 
 		printk("bio alloc start\n");
 		bio = bio_alloc(GFP_KERNEL, nr_secs);
@@ -932,6 +949,7 @@ void start_snapshot(struct pblk *pblk) {
 		rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
 		rqd->bio = bio;
 
+		e_line = pblk_line_get_erase(pblk);
 		printk("c_ctx setting\n");
 		c_ctx = nvm_rq_to_pdu(rqd);
 		c_ctx->sentry = lba;
@@ -948,11 +966,39 @@ void start_snapshot(struct pblk *pblk) {
 		}
 
 		printk("111lba = %d, nr_secs = %d\n", lba, nr_secs);
-		printk("submit_io_set start\n");
-		pblk_submit_io_set(pblk, rqd);
+
+		//<--------------------------->
+
+		pblk_ppa_set_empty(&erase_ppa);
+		lun_bitmap = kzalloc(lm->lun_bitmap_len, GFP_KERNEL);
+		c_ctx->lun_bitmap = lun_bitmap;
+		ret = pblk_alloc_w_rq(pblk, rqd, nr_secs, pblk_end_io_write);
+		if(ret) kfree(lun_bitmap);
+
+		if(likely(!e_line || !atomic_read(&e_line->left_eblks))) {
+			paddr = pblk_alloc_page(pblk, line, nr_secs);
+			
+			for(i = 0; i < nr_secs; i++, paddr++) {
+				__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
+
+				rqd->ppa_list[i] = addr_to_gen_ppa(pblk, paddr, line->id);
+
+				kref_get(&line->ref);
+				meta_list[i].lba = cpu_to_le64(lba);
+				lba_list[paddr] = cpu_to_le64(lba);
+
+				pblk_down_rq(pblk, &rqd->ppa_list, nr_secs, lun_bitmap);
+
+			}
+		}
+
+		//<--------------------------->
+
+
 		printk("222lba = %d, nr_secs = %d\n", lba, nr_secs);
+
 		lba += nr_secs;
-		printk("333lba = %d, nr_secs = %d\n", lba, nr_secs);
+	
 	}
 
 fail_put_bio:

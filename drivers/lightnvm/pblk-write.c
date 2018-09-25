@@ -913,21 +913,23 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 	printk("start_snapshot is start\n");
 
-	prev_line = pblk_line_get_data(pblk);
+	//prev_line = pblk_line_get_data(pblk);
 	line = pblk_line_replace_data(pblk);
-	pblk_line_close_meta(pblk, prev_line);
+	//pblk_line_close_meta(pblk, prev_line);
 	if(!line) {
 		printk("no line\n");
 	}
 
-	printk("%d\n", line->type);
+	printk("line->type = %d\n", line->type);
 	line->type = PBLK_LINETYPE_LOG;
+	printk("line->type = %d\n", line->type);
 	emeta = line->emeta;
 	lba_list = emeta_to_lbas(pblk, emeta->buf);
 
 	for(; lba <= pblk->rl.nr_secs;) {
 
 		printk("line->left_msecs = %d\n",line->left_msecs);
+
 		if(pblk_line_is_full(line) || line->left_msecs < nr_secs) {
 			prev_line = line;
 

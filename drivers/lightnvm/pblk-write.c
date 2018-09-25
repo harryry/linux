@@ -987,7 +987,7 @@ void start_snapshot(struct pblk *pblk) {
 				meta_list[i].lba = cpu_to_le64(lba);
 				lba_list[paddr] = cpu_to_le64(lba);
 
-				pblk_down_rq(pblk, &rqd->ppa_list, nr_secs, lun_bitmap);
+				pblk_down_rq(pblk, rqd->ppa_list, nr_secs, lun_bitmap);
 
 			}
 		}

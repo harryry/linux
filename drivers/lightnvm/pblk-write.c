@@ -898,6 +898,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 	struct pblk_sec_meta *meta_list;
 	struct pblk_line *line;
 	struct pblk_line *e_line;
+	struct pblk_line *prev_line;
 	struct pblk_c_ctx *c_ctx;
 	struct request_queue *q = pblk->dev->q;
 	struct ppa_addr *map = (struct ppa_addr *)pblk->trans_map;
@@ -912,7 +913,9 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 	printk("start_snapshot is start\n");
 
+	prev_line = pblk_line_get_data(pblk);
 	line = pblk_line_replace_data(pblk);
+	pblk_line_close_meta(pblk, prev_line);
 	if(!line) {
 		printk("no line\n");
 	}
@@ -928,7 +931,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 		printk("for loop start\n");
 		if(pblk_line_is_full(line)) {
-			struct pblk_line *prev_line = line;
+			prev_line = line;
 
 			line = pblk_line_replace_data(pblk);
 
@@ -993,7 +996,8 @@ void pblk_start_snapshot(struct pblk *pblk) {
 				meta_list[i].lba = cpu_to_le64(lba);
 				lba_list[paddr] = cpu_to_le64(lba);
 
-				pblk_submit_io(pblk, rqd);
+				nvm_submit_io(pblk->dev, rqd);
+				//pblk_submit_io(pblk, rqd);
 				//pblk_down_rq(pblk, rqd->ppa_list, nr_secs, lun_bitmap);
 
 			}

@@ -996,8 +996,8 @@ void pblk_start_snapshot(struct pblk *pblk) {
 				meta_list[i].lba = cpu_to_le64(lba);
 				lba_list[paddr] = cpu_to_le64(lba);
 
-				nvm_submit_io(pblk->dev, rqd);
-				//pblk_submit_io(pblk, rqd);
+				//nvm_submit_io(pblk->dev, rqd);
+				pblk_submit_io(pblk, rqd);
 				//pblk_down_rq(pblk, rqd->ppa_list, nr_secs, lun_bitmap);
 
 			}

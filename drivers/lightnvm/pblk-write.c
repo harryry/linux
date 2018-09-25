@@ -973,6 +973,10 @@ void pblk_start_snapshot(struct pblk *pblk) {
 		if(ret) kfree(lun_bitmap);
 
 		//if(likely(!e_line || !atomic_read(&e_line->left_eblks))) {
+
+		if(line->left_msecs < nr_secs)
+			continue;
+			
 		paddr = pblk_alloc_page(pblk, line, nr_secs);
 		
 		for(i = 0; i < nr_secs; i++, paddr++) {

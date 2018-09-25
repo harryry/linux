@@ -927,7 +927,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 	for(; lba <= pblk->rl.nr_secs;) {
 
-		if(pblk_line_is_full(line)) {
+		if(pblk_line_is_full(line) || line->left_msecs < nr_secs) {
 			prev_line = line;
 
 			line = pblk_line_replace_data(pblk);
@@ -974,9 +974,6 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 		//if(likely(!e_line || !atomic_read(&e_line->left_eblks))) {
 
-		if(line->left_msecs < nr_secs)
-			continue;
-			
 		paddr = pblk_alloc_page(pblk, line, nr_secs);
 		
 		for(i = 0; i < nr_secs; i++, paddr++) {

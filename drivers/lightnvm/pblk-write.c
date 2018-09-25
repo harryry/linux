@@ -920,16 +920,13 @@ void pblk_start_snapshot(struct pblk *pblk) {
 		printk("no line\n");
 	}
 
-	printk("first line type setting\n");
 	printk("%d\n", line->type);
-	//line->type = PBLK_LINETYPE_LOG;
-	printk("type setting end\n");
+	line->type = PBLK_LINETYPE_LOG;
 	emeta = line->emeta;
 	lba_list = emeta_to_lbas(pblk, emeta->buf);
 
 	for(; lba <= pblk->rl.nr_secs;) {
 
-		printk("for loop start\n");
 		if(pblk_line_is_full(line)) {
 			prev_line = line;
 
@@ -946,33 +943,25 @@ void pblk_start_snapshot(struct pblk *pblk) {
 				printk("start_snapshot: line is full\n");
 		}
 
-		printk("bio alloc start\n");
 		bio = bio_alloc(GFP_KERNEL, nr_secs);
 
-		printk("bio setting\n");
 		bio->bi_iter.bi_sector = 0;
 		bio_set_op_attrs(bio, REQ_OP_WRITE, 0);
 
-		printk("request make\n");
 		rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
 		rqd->bio = bio;
 
 		e_line = pblk_line_get_erase(pblk);
-		printk("c_ctx setting\n");
 		c_ctx = nvm_rq_to_pdu(rqd);
 		c_ctx->sentry = lba;
 		c_ctx->nr_valid = nr_secs;
 		c_ctx->nr_padded = 0;
 
-		printk("virt_to_page start\n");
 		page = virt_to_page(&map[lba]);
-		printk("virt_to_page end\n");
 
-		if(bio_add_pc_page(q, bio, page, nr_secs, 0) != nr_secs) {
-			pr_err("start_snapshot: bio_add_pc_page error\n");
+		if(bio_add_pc_page(q, bio, page, nr_secs, 0) != nr_secs) 
 			goto fail_put_bio;
-		}
-
+		
 		printk("111lba = %d, nr_secs = %d\n", lba, nr_secs);
 
 		//<--------------------------->
@@ -983,25 +972,25 @@ void pblk_start_snapshot(struct pblk *pblk) {
 		ret = pblk_alloc_w_rq(pblk, rqd, nr_secs, pblk_end_io_write);
 		if(ret) kfree(lun_bitmap);
 
-		if(likely(!e_line || !atomic_read(&e_line->left_eblks))) {
-			paddr = pblk_alloc_page(pblk, line, nr_secs);
+		//if(likely(!e_line || !atomic_read(&e_line->left_eblks))) {
+		paddr = pblk_alloc_page(pblk, line, nr_secs);
+		
+		for(i = 0; i < nr_secs; i++, paddr++) {
+			__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
+
+			rqd->ppa_list[i] = addr_to_gen_ppa(pblk, paddr, line->id);
+
+			kref_get(&line->ref);
+			meta_list = rqd->meta_list;
+			meta_list[i].lba = cpu_to_le64(lba);
+			lba_list[paddr] = cpu_to_le64(lba);
+
+			//nvm_submit_io(pblk->dev, rqd);
 			
-			for(i = 0; i < nr_secs; i++, paddr++) {
-				__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
+			//pblk_down_rq(pblk, rqd->ppa_list, nr_secs, lun_bitmap);
 
-				rqd->ppa_list[i] = addr_to_gen_ppa(pblk, paddr, line->id);
-
-				kref_get(&line->ref);
-				meta_list = rqd->meta_list;
-				meta_list[i].lba = cpu_to_le64(lba);
-				lba_list[paddr] = cpu_to_le64(lba);
-
-				//nvm_submit_io(pblk->dev, rqd);
-				
-				//pblk_down_rq(pblk, rqd->ppa_list, nr_secs, lun_bitmap);
-
-			}
 		}
+		//}
 		pblk_submit_io(pblk, rqd);
 
 		//<--------------------------->

@@ -913,6 +913,9 @@ void start_snapshot(struct pblk *pblk) {
 	printk("start_snapshot is start\n");
 
 	line = pblk_line_get_data(pblk);
+	if(!line) {
+		printk("no line\n");
+	}
 
 	printk("first line type setting\n");
 	printk("%d\n", line->type);

@@ -887,7 +887,7 @@ void start_snapshot(struct pblk *pblk) {
 
 	printk("start_snapshot is start\n");
 
-	line = pblk_line_get(pblk);
+	line = pblk_line_get_data(pblk);
 	printk("first line type setting\n");
 	line->type = PBLK_LINETYPE_LOG;
 
@@ -895,7 +895,7 @@ void start_snapshot(struct pblk *pblk) {
 
 		printk("for loop start\n");
 		if(pblk_line_is_full(line)) {
-			struct pblk_line *prev_line = line;
+			//struct pblk_line *prev_line = line;
 
 			line = pblk_line_get(pblk);
 			printk("new line type setting\n");
@@ -932,9 +932,12 @@ void start_snapshot(struct pblk *pblk) {
 			goto fail_put_bio;
 		}
 
+		printk("111lba = %d, nr_secs = %d\n", lba, nr_secs);
 		printk("submit_io_set start\n");
 		pblk_submit_io_set(pblk, rqd);
+		printk("222lba = %d, nr_secs = %d\n", lba, nr_secs);
 		lba += nr_secs;
+		printk("333lba = %d, nr_secs = %d\n", lba, nr_secs);
 	}
 
 fail_put_bio:

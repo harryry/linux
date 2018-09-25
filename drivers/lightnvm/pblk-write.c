@@ -515,7 +515,7 @@ static int pblk_submit_io_set(struct pblk *pblk, struct nvm_rq *rqd)
 
 	printk("pblke_submit_io_set start\n");
 	pblk_ppa_set_empty(&erase_ppa);
-	printk("pblk_ppa_set_empty ")
+	printk("pblk_ppa_set_empty ");
 
 	/* Assign lbas to ppas and populate request structure */
 	printk("pblk_setup_w_rq start\n");

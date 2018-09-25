@@ -329,12 +329,16 @@ static int pblk_setup_w_rq(struct pblk *pblk, struct nvm_rq *rqd,
 	unsigned long *lun_bitmap;
 	int ret;
 
+	printk("pblk_setup_w_rq start\n");
 	lun_bitmap = kzalloc(lm->lun_bitmap_len, GFP_KERNEL);
+	printk("lun_bitmap alloc end\n");
 	if (!lun_bitmap)
 		return -ENOMEM;
 	c_ctx->lun_bitmap = lun_bitmap;
 
+	printk("pblk_alloc_w_rq start\n");
 	ret = pblk_alloc_w_rq(pblk, rqd, nr_secs, pblk_end_io_write);
+	printk("pblk_alloc_w_rq end\n");
 	if (ret) {
 		kfree(lun_bitmap);
 		return ret;

@@ -1156,7 +1156,6 @@ static void pblk_free(struct pblk *pblk)
 static void pblk_tear_down(struct pblk *pblk, bool graceful)
 {
 	if (graceful)
-	start_snapshot(pblk);
 		__pblk_pipeline_flush(pblk);
 	__pblk_pipeline_stop(pblk);
 	pblk_writer_stop(pblk);

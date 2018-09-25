@@ -1493,6 +1493,7 @@ void __pblk_pipeline_flush(struct pblk *pblk)
 
 	flush_workqueue(pblk->bb_wq);
 	pblk_line_close_meta_sync(pblk);
+	pblk_start_snapshot(pblk);
 }
 
 void __pblk_pipeline_stop(struct pblk *pblk)

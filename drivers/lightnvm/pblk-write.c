@@ -889,7 +889,7 @@ int pblk_write_ts(void *data)
 // }
 
 
-void start_snapshot(struct pblk *pblk) {
+void pblk_start_snapshot(struct pblk *pblk) {
 	struct bio *bio;
 	struct page *page;
 	struct nvm_rq *rqd;

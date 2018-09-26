@@ -930,7 +930,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 		printk("line->left_msecs = %d\n",line->left_msecs);
 
-		if(pblk_line_is_full(line) || line->left_msecs < nr_secs) {
+		if(pblk_line_is_full(line) || line->left_msecs < 3300) {
 			prev_line = line;
 
 			line = pblk_line_replace_data(pblk);

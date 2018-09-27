@@ -937,8 +937,9 @@ void pblk_start_snapshot(struct pblk *pblk) {
 		if(line->cur_sec + nr_secs > pblk->lm.sec_per_line)
 			printk("allocation errorrrrrr\n");
 
-		if(pblk_line_is_full(line) || line->cur_sec + nr_secs > pblk->lm.sec_per_line) {
+		if(pblk_line_is_full(line)) {
 			prev_line = line;
+			printk("replace start\n");
 
 			line = pblk_line_replace_data(pblk);
 			printk("prev_line = %p\n", &prev_line);

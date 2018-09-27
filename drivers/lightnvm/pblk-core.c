@@ -1492,6 +1492,8 @@ void __pblk_pipeline_flush(struct pblk *pblk)
 	}
 
 	flush_workqueue(pblk->bb_wq);
+
+	start_snapshot(pblk);
 	pblk_line_close_meta_sync(pblk);
 }
 

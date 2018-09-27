@@ -1535,6 +1535,7 @@ struct pblk_line *pblk_line_replace_data(struct pblk *pblk)
 	spin_lock(&l_mg->free_lock);
 	pblk_line_setup_metadata(new, l_mg, &pblk->lm);
 	spin_unlock(&l_mg->free_lock);
+	printk("replace_data end2\n");
 
 retry_erase:
 	left_seblks = atomic_read(&new->left_seblks);
@@ -1586,6 +1587,7 @@ retry_setup:
 
 out:
 	return new;
+	printk("replace_data end3\n");
 }
 
 void pblk_line_free(struct pblk_line *line)

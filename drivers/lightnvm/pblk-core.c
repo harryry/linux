@@ -1533,7 +1533,9 @@ struct pblk_line *pblk_line_replace_data(struct pblk *pblk)
 	printk("replace_data end\n");
 
 	spin_lock(&l_mg->free_lock);
+	printk("pblk_line_setup_metadata start\n");
 	pblk_line_setup_metadata(new, l_mg, &pblk->lm);
+	printk("pblk_line_setup_metadata end\n");
 	spin_unlock(&l_mg->free_lock);
 	printk("replace_data end2\n");
 

@@ -1520,11 +1520,17 @@ struct pblk_line *pblk_line_replace_data(struct pblk *pblk)
 	struct pblk_line *cur, *new = NULL;
 	unsigned int left_seblks;
 
+	printk("pblk_line_replace_data start\n");
 	cur = l_mg->data_line;
 	new = l_mg->data_next;
+	printk("cur point = %p\n", &cur);
+	printk("new point = %p\n", &new);
+
 	if (!new)
 		goto out;
 	l_mg->data_line = new;
+
+	printk("replace_data end\n");
 
 	spin_lock(&l_mg->free_lock);
 	pblk_line_setup_metadata(new, l_mg, &pblk->lm);

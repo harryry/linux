@@ -929,6 +929,13 @@ void pblk_start_snapshot(struct pblk *pblk) {
 	for(; lba <= pblk->rl.nr_secs;) {
 
 		printk("line->left_msecs = %d\n",line->left_msecs);
+		printk("pblk->rl.nr_secs = %u\n", pblk->rl.nr_secs);
+
+		if(pblk_line_is_fill(line))
+			printk("line is fullllllll\n");
+
+		if(line->cur_sec + nr_secs > pblk->lm.sec_per_line)
+			printk("allocation errorrrrrr\n");
 
 		if(pblk_line_is_full(line) || line->cur_sec + nr_secs > pblk->lm.sec_per_line) {
 			prev_line = line;
@@ -940,7 +947,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 			emeta = line->emeta;
 			lba_list = emeta_to_lbas(pblk, emeta->buf);
 
-			pblk_line_close_meta(pblk, prev_line);
+			//pblk_line_close_meta(pblk, prev_line);
 
 			if(!line)
 				printk("start_snapshot: line is full\n");

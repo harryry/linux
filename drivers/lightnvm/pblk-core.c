@@ -969,7 +969,6 @@ static void pblk_line_setup_metadata(struct pblk_line *line,
 
 retry_meta:
 
-	printk("retry_meta start\n");
 	meta_line = find_first_zero_bit(&l_mg->meta_bitmap, PBLK_DATA_LINES);
 	if (meta_line == PBLK_DATA_LINES) {
 		spin_unlock(&l_mg->free_lock);
@@ -1527,14 +1526,17 @@ struct pblk_line *pblk_line_replace_data(struct pblk *pblk)
 	unsigned int left_seblks;
 
 	printk("pblk_line_replace_data start\n");
+	printk("before data_line = %p\n", &l_mg->data_line);
 	cur = l_mg->data_line;
 	new = l_mg->data_next;
+
 	printk("cur point = %p\n", &cur);
 	printk("new point = %p\n", &new);
 
 	if (!new)
 		goto out;
 	l_mg->data_line = new;
+	printk("after data_line = %p\n", &l_mg->data_line);
 
 	printk("replace_data end\n");
 

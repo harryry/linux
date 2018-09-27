@@ -921,7 +921,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 	}
 
 	printk("line->type = %d\n", line->type);
-	line->type = PBLK_LINETYPE_LOG;
+	//line->type = PBLK_LINETYPE_LOG;
 	printk("line->type = %d\n", line->type);
 	emeta = line->emeta;
 	lba_list = emeta_to_lbas(pblk, emeta->buf);
@@ -979,8 +979,10 @@ void pblk_start_snapshot(struct pblk *pblk) {
 		//if(likely(!e_line || !atomic_read(&e_line->left_eblks))) {
 
 		paddr = pblk_alloc_page(pblk, line, nr_secs);
+		printk("allocate paddr == %u\n", paddr);
 		
 		for(i = 0; i < nr_secs; i++, paddr++) {
+			printk("paddr++ == %u\n", paddr);
 			__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
 
 			rqd->ppa_list[i] = addr_to_gen_ppa(pblk, paddr, line->id);
@@ -991,7 +993,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 			lba_list[paddr] = cpu_to_le64(lba);
 		}
 		//}
-		pblk_submit_io(pblk, rqd);
+		//pblk_submit_io(pblk, rqd);
 
 		//<--------------------------->
 

@@ -941,6 +941,8 @@ void pblk_start_snapshot(struct pblk *pblk) {
 			prev_line = line;
 
 			line = pblk_line_replace_data(pblk);
+			printk("prev_line = %p\n", &prev_line);
+			printl("new_line = %p\n", &line);
 
 			printk("new line type setting\n");
 			line->type = PBLK_LINETYPE_LOG;

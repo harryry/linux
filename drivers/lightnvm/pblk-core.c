@@ -964,9 +964,12 @@ static void pblk_line_setup_metadata(struct pblk_line *line,
 {
 	int meta_line;
 
+	printk("pblk_line_setup_metadata start\n");
 	lockdep_assert_held(&l_mg->free_lock);
 
 retry_meta:
+
+	printk("retry_meta start\n");
 	meta_line = find_first_zero_bit(&l_mg->meta_bitmap, PBLK_DATA_LINES);
 	if (meta_line == PBLK_DATA_LINES) {
 		spin_unlock(&l_mg->free_lock);
@@ -975,17 +978,20 @@ retry_meta:
 		goto retry_meta;
 	}
 
+	printk("test1111111111\n");
 	set_bit(meta_line, &l_mg->meta_bitmap);
 	line->meta_line = meta_line;
 
 	line->smeta = l_mg->sline_meta[meta_line];
 	line->emeta = l_mg->eline_meta[meta_line];
+	printk("test22222222222\n");
 
 	memset(line->smeta, 0, lm->smeta_len);
 	memset(line->emeta->buf, 0, lm->emeta_len[0]);
 
 	line->emeta->mem = 0;
 	atomic_set(&line->emeta->sync, 0);
+	printk("test333333333333\n");
 }
 
 /* For now lines are always assumed full lines. Thus, smeta former and current

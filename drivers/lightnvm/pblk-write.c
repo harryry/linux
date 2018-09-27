@@ -987,6 +987,10 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 			rqd->ppa_list[i] = addr_to_gen_ppa(pblk, paddr, line->id);
 			printk("ppa_list print == %llu\n", rqd->ppa_list[i]);
+			printk("ppa grp = %u\n", rqd->ppa_list[i].grp);
+			printk("ppa pu = %u\n", rqd->ppa_list[i].pu);
+			printk("ppa chk = %u\n", rqd->ppa_list[i].chk);
+			printk("ppa sec = %u\n", rqd->ppa_list[i].sec);
 
 			kref_get(&line->ref);
 			meta_list = rqd->meta_list;

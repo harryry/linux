@@ -906,7 +906,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 	unsigned long *lun_bitmap;
 	unsigned int map_secs;
 	int nr_secs = pblk->min_write_pgs;
-	int err, ret, i;
+	int err, ret, i, j;
 	sector_t lba = 0;
 	__le64 *lba_list;
 	u64 paddr;
@@ -953,6 +953,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 		rqd = pblk_alloc_rqd(pblk, PBLK_WRITE);
 		rqd->bio = bio;
+		rqd->flags = pblk_set_progr_mode(pblk, PBLK_WRITE);
 
 		e_line = pblk_line_get_erase(pblk);
 		c_ctx = nvm_rq_to_pdu(rqd);
@@ -986,13 +987,8 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 			kref_get(&line->ref);
 			meta_list = rqd->meta_list;
-			meta_list[i].lba = cpu_to_le64(lba);
+			meta_list[i].lba = addr_empty;
 			lba_list[paddr] = cpu_to_le64(lba);
-
-			//nvm_submit_io(pblk->dev, rqd);
-			
-			//pblk_down_rq(pblk, rqd->ppa_list, nr_secs, lun_bitmap);
-
 		}
 		//}
 		pblk_submit_io(pblk, rqd);

@@ -931,7 +931,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 		printk("line->left_msecs = %d\n",line->left_msecs);
 		printk("pblk->rl.nr_secs = %u\n", pblk->rl.nr_secs);
 
-		if(pblk_line_is_fill(line))
+		if(pblk_line_is_full(line))
 			printk("line is fullllllll\n");
 
 		if(line->cur_sec + nr_secs > pblk->lm.sec_per_line)

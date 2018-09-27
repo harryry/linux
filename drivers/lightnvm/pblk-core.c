@@ -964,11 +964,9 @@ static void pblk_line_setup_metadata(struct pblk_line *line,
 {
 	int meta_line;
 
-	printk("pblk_line_setup_metadata start\n");
 	lockdep_assert_held(&l_mg->free_lock);
 
 retry_meta:
-
 	meta_line = find_first_zero_bit(&l_mg->meta_bitmap, PBLK_DATA_LINES);
 	if (meta_line == PBLK_DATA_LINES) {
 		spin_unlock(&l_mg->free_lock);
@@ -977,20 +975,17 @@ retry_meta:
 		goto retry_meta;
 	}
 
-	printk("test1111111111\n");
 	set_bit(meta_line, &l_mg->meta_bitmap);
 	line->meta_line = meta_line;
 
 	line->smeta = l_mg->sline_meta[meta_line];
 	line->emeta = l_mg->eline_meta[meta_line];
-	printk("test22222222222\n");
 
 	memset(line->smeta, 0, lm->smeta_len);
 	memset(line->emeta->buf, 0, lm->emeta_len[0]);
 
 	line->emeta->mem = 0;
 	atomic_set(&line->emeta->sync, 0);
-	printk("test333333333333\n");
 }
 
 /* For now lines are always assumed full lines. Thus, smeta former and current
@@ -1497,8 +1492,6 @@ void __pblk_pipeline_flush(struct pblk *pblk)
 	}
 
 	flush_workqueue(pblk->bb_wq);
-
-	pblk_start_snapshot(pblk);
 	pblk_line_close_meta_sync(pblk);
 }
 
@@ -1525,27 +1518,15 @@ struct pblk_line *pblk_line_replace_data(struct pblk *pblk)
 	struct pblk_line *cur, *new = NULL;
 	unsigned int left_seblks;
 
-	printk("pblk_line_replace_data start\n");
-	printk("before data_line = %p\n", &l_mg->data_line);
 	cur = l_mg->data_line;
 	new = l_mg->data_next;
-
-	printk("cur point = %p\n", &cur);
-	printk("new point = %p\n", &new);
-
 	if (!new)
 		goto out;
 	l_mg->data_line = new;
-	printk("after data_line = %p\n", &l_mg->data_line);
-
-	printk("replace_data end\n");
 
 	spin_lock(&l_mg->free_lock);
-	printk("pblk_line_setup_metadata start\n");
 	pblk_line_setup_metadata(new, l_mg, &pblk->lm);
-	printk("pblk_line_setup_metadata end\n");
 	spin_unlock(&l_mg->free_lock);
-	printk("replace_data end2\n");
 
 retry_erase:
 	left_seblks = atomic_read(&new->left_seblks);
@@ -1597,7 +1578,6 @@ retry_setup:
 
 out:
 	return new;
-	printk("replace_data end3\n");
 }
 
 void pblk_line_free(struct pblk_line *line)

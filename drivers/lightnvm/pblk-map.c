@@ -92,7 +92,7 @@ void pblk_map_rq(struct pblk *pblk, struct nvm_rq *rqd, unsigned int sentry,
 	int min = pblk->min_write_pgs;
 	int i;
 
-	printk("off = %u, rqd->nr_ppa = %u\n", off, rqd->nr_ppa);
+	printk("off = %u, rqd->nr_ppas = %u\n", off, rqd->nr_ppas);
 	for (i = off; i < rqd->nr_ppas; i += min) {
 		map_secs = (i + min > valid_secs) ? (valid_secs % min) : min;
 		printk("map_secs = %u\n", map_secs);

@@ -986,7 +986,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 			__le64 addr_empty = cpu_to_le64(ADDR_EMPTY);
 
 			rqd->ppa_list[i] = addr_to_gen_ppa(pblk, paddr, line->id);
-			printk("ppa_list print == %llu\n", rad->ppa_list[i]);
+			printk("ppa_list print == %llu\n", rqd->ppa_list[i]);
 
 			kref_get(&line->ref);
 			meta_list = rqd->meta_list;

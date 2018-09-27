@@ -930,7 +930,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 		printk("line->left_msecs = %d\n",line->left_msecs);
 
-		if(pblk_line_is_full(line) || line->left_msecs < 3300) {
+		if(pblk_line_is_full(line)) {
 			prev_line = line;
 
 			line = pblk_line_replace_data(pblk);
@@ -965,7 +965,7 @@ void pblk_start_snapshot(struct pblk *pblk) {
 		if(bio_add_pc_page(q, bio, page, nr_secs, 0) != nr_secs) 
 			goto fail_put_bio;
 		
-		printk("111lba = %d, nr_secs = %d\n", lba, nr_secs);
+		printk("111---lba = %d, nr_secs = %d\n", lba, nr_secs);
 
 		//<--------------------------->
 
@@ -999,10 +999,9 @@ void pblk_start_snapshot(struct pblk *pblk) {
 
 		//<--------------------------->
 
-
-		printk("222lba = %d, nr_secs = %d\n", lba, nr_secs);
-
 		lba += nr_secs;
+
+		printk("222---lba = %d, nr_secs = %d\n", lba, nr_secs);	
 	
 	}
 

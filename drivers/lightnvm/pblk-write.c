@@ -942,6 +942,8 @@ void pblk_start_snapshot(struct pblk *pblk) {
 			printk("replace start\n");
 
 			line = pblk_line_replace_data(pblk);
+			printk("snapshot_replace end\n");
+
 			printk("prev_line = %p\n", &prev_line);
 			printk("new_line = %p\n", &line);
 
